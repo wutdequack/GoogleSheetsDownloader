@@ -35,4 +35,4 @@ https://developers.google.com/drive/api/v3/quickstart/python
 
 ## Main Sources of Information
 
-Last thing... I know its crappy. It is scrappy 30 mins of coding. Will sort out bugs when there is the time.
+Last thing... I know its crappy. It is scrappy 30 mins of coding. Will sort out bugs and errors when there is the time.

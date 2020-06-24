@@ -33,7 +33,7 @@ def get_codes(list_of_urls):
             url = "http://www." + url
         person_id = url.split("/")[-1]
         r = requests.get(url)
-        dict_of_codes[convert_unicode_to_str(r.url).split("/")[5]] = person_id
+        dict_of_codes[convert_unicode_to_str(r.url).split("/")[5]] = person_id.upper()
     return dict_of_codes
 
 
@@ -41,6 +41,9 @@ def main(argv):
     """Shows basic usage of the Drive v3 API.
     Prints the names and ids of the first 10 files the user has access to.
     """
+    print("[*] Welcome to Getting Google Sheets with wutdequack.")
+    print("[*] Getting Credentials...")
+
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -60,6 +63,7 @@ def main(argv):
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
 
+    print("[*] Starting Google Drive Service API v3")
     service = build('drive', 'v3', credentials=creds)
 
     # Get Params
@@ -68,6 +72,7 @@ def main(argv):
         print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX")
         return None
 
+    print("[*] Converting Domains into spreadsheetIds")
     # Enumerate list
     list_of_addresses = argv[1].split(",")
     dict_of_codes = get_codes(list_of_addresses)
@@ -77,6 +82,7 @@ def main(argv):
     os.mkdir(dir_name)
     accessToken = convert_unicode_to_str(creds.token)
 
+    print("[*] Enumerating through and forming Export URLs...")
     for spreadsheetId, person_id in dict_of_codes.items():
         url = ('https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/export?'
                + 'format=pdf'  # export as PDF
@@ -88,9 +94,12 @@ def main(argv):
                + '&pagenum=RIGHT'  # Put page number to right of footer
                + '&access_token=' + accessToken)  # access token
         r = requests.get(url)
-        with open('{}/{}.pdf'.format(dir_name, person_id), 'wb') as saveFile:
+        file_loc = '{}/{}.pdf'.format(dir_name, person_id)
+        with open(file_loc, 'wb') as saveFile:
             saveFile.write(r.content)
-        print('Done.')
+        print("[*] Created PDF File at {}".format(file_loc))
+
+    print("[*] End of Program, Have a nice day!")
 
 
 if __name__ == '__main__':
