@@ -13,6 +13,7 @@ Upon running code, your browser may prompt you for some stuff. Select the Google
 
 The results will be in a new directory starting with a lot of numbers (Epoch Time)
 
+USE PYTHON 2.7!!!!!!!!
 ## Install
 
 ```
