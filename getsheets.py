@@ -2,16 +2,30 @@ from __future__ import print_function
 from collections import OrderedDict
 from time import time
 from datetime import datetime
+import re
 import sys
 import pickle
 import os.path
 import requests
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
+
+DAY_TO_DRIVECODE = {
+    1: "1RZt9vMjM3fGH6gvxYwoE3YoEt-LSSBmS",
+    2: "1sIk9cEBENbwSbrN3U7dON3ssZeDl6hcj",
+    3: "1GZiMh6q9iugpr8Ul44tQhVS_nNy0MxU2"
+}
+
+DAY_TO_SHEETID = {
+    1: "0",
+    2: "1103324313",
+    3: "1768578311"
+}
 
 
 def get_formatted_date():
@@ -48,9 +62,14 @@ def get_codes(list_of_urls):
     for url in list_of_urls:
         if not url.startswith("http://www.") or url.startswith("www.") or url.startswith("https://www."):
             url = "http://www." + url
-        person_id = url.split("/")[-1]
+        person_id = url.split("/")[-1].upper()
+
+        # Regex to pick out the exact identifier
+        match = re.match(r'(\w\d+).*', person_id)
+        person_id = match.group(1)
+
         r = requests.get(url)
-        dict_of_codes[person_id.upper()[:2]] = convert_unicode_to_str(r.url).split("/")[5]
+        dict_of_codes[person_id] = convert_unicode_to_str(r.url).split("/")[5]
     return dict_of_codes
 
 
@@ -84,10 +103,10 @@ def main(argv):
     service = build('drive', 'v3', credentials=creds)
 
     # Get Params
-    if len(argv) != 4:
-        print("Usage: getsheets.py <list of domainS seperated by commas> <serial num range> [serial num(s) to exclude, if any]")
-        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108,109")
-        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108")
+    if len(argv) != 5:
+        print("Usage: getsheets.py <list of domainS seperated by commas> <Day of Project: 1 -> 24, 2-> 25, 3 -> 26> <serial num range> [serial num(s) to exclude, if any]")
+        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 1 106-120 108,109")
+        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 2 106-120 108")
         return None
 
     print("[*] Converting Domains into spreadsheetIds")
@@ -101,9 +120,15 @@ def main(argv):
     os.mkdir(dir_name)
     accessToken = convert_unicode_to_str(creds.token)
 
+    # Get Drive Code
+    drive_code = DAY_TO_DRIVECODE[int(argv[2])]
+
+    # Get sheetID
+    sheetId = DAY_TO_SHEETID[int(argv[2])]
+
     # Get list of S/Ns
-    range_of_sn = range(int(argv[2].split("-")[0]), int(argv[2].split("-")[1]) + 1)
-    range_of_sn = enum_sn(range_of_sn, map(int, argv[3].split(",")))
+    range_of_sn = range(int(argv[3].split("-")[0]), int(argv[3].split("-")[1]) + 1)
+    range_of_sn = enum_sn(range_of_sn, map(int, argv[4].split(",")))
 
     if len(range_of_sn) != len(dict_of_codes):
         print("[!] Your Serial number range [{}] does not add up to the number of domains [{}] given...".format(len(range_of_sn), len(dict_of_codes)))
@@ -123,12 +148,26 @@ def main(argv):
                + '&left_margin=0.00'  # Margin
                + '&right_margin=0.00'  # Margin
                + '&pagenum=RIGHT'  # Put page number to right of footer
+               + '&gid=' + sheetId  # sheetId
                + '&access_token=' + accessToken)  # access token
         r = requests.get(url)
-        file_loc = '{}/{}_{}_{}.pdf'.format(dir_name, get_formatted_date(), range_of_sn[count],person_id)
+        file_loc = '{}/{}_{}_{}.pdf'.format(dir_name, get_formatted_date(), range_of_sn[count], person_id)
         with open(file_loc, 'wb') as saveFile:
             saveFile.write(r.content)
         print("[*] Created PDF File at {}".format(file_loc))
+
+        # Automatic upload. Work in Progress!
+        # file_metadata = {
+        #     'name': file_loc.split("/")[-1],
+        #     'parents': [drive_code]
+        # }
+        # media = MediaFileUpload(file_loc,
+        #                         mimetype='application/pdf')
+        # created_file = service.files().create(body=file_metadata,
+        #                                     media_body=media,
+        #                                     fields='id').execute()
+        # print('[*] Created new File. File ID: %s' % created_file.get('id'))
+
         count += 1
 
     print("[*] End of Program, Have a nice day!")
