@@ -23,9 +23,9 @@ pip install -r requirements.txt
 ## Run
 
 ```
-Usage: getsheets.py <list of domainS seperated by commas> <serial num range> [serial num(s) to exclude, if any]
-Example 1: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108,109
-Example 2: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108 
+Usage: getsheets.py <list of domainS seperated by commas> <Day of Project: 1 -> 24, 2-> 25, 3 -> 26> <serial num range> [serial num(s) to exclude, if any]
+Example 1: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 1 106-120 108,109
+Example 2: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 2 106-120 108 
 ```
 
 ## Main Sources of Information
