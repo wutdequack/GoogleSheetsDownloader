@@ -28,6 +28,19 @@ DAY_TO_SHEETID = {
 }
 
 
+def get_day():
+    # Get Day given Date
+    if get_formatted_date() == '24Jun':
+        return 1
+    elif get_formatted_date() == '25Jun':
+        return 2
+    elif get_formatted_date() == '26Jun':
+        return 3
+    else:
+        print("[!] You are way past the project date. Gonna kill myself cause my owner did not program me this far.")
+        exit(0)
+
+
 def get_formatted_date():
     # Gets formatted Date
     return datetime.now().strftime("%d%b")
@@ -103,10 +116,10 @@ def main(argv):
     service = build('drive', 'v3', credentials=creds)
 
     # Get Params
-    if len(argv) != 5:
-        print("Usage: getsheets.py <list of domainS seperated by commas> <Day of Project: 1 -> 24, 2-> 25, 3 -> 26> <serial num range> [serial num(s) to exclude, if any]")
-        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 1 106-120 108,109")
-        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 2 106-120 108")
+    if len(argv) != 4:
+        print("Usage: getsheets.py <list of domainS seperated by commas> <serial num range> [serial num(s) to exclude, if any]")
+        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108,109")
+        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108")
         return None
 
     print("[*] Converting Domains into spreadsheetIds")
@@ -120,15 +133,18 @@ def main(argv):
     os.mkdir(dir_name)
     accessToken = convert_unicode_to_str(creds.token)
 
+    # Get Day
+    day = get_day()
+
     # Get Drive Code
-    drive_code = DAY_TO_DRIVECODE[int(argv[2])]
+    drive_code = DAY_TO_DRIVECODE[day]
 
     # Get sheetID
-    sheetId = DAY_TO_SHEETID[int(argv[2])]
+    sheetId = DAY_TO_SHEETID[day]
 
     # Get list of S/Ns
-    range_of_sn = range(int(argv[3].split("-")[0]), int(argv[3].split("-")[1]) + 1)
-    range_of_sn = enum_sn(range_of_sn, map(int, argv[4].split(",")))
+    range_of_sn = range(int(argv[2].split("-")[0]), int(argv[2].split("-")[1]) + 1)
+    range_of_sn = enum_sn(range_of_sn, map(int, argv[3].split(",")))
 
     if len(range_of_sn) != len(dict_of_codes):
         print("[!] Your Serial number range [{}] does not add up to the number of domains [{}] given...".format(len(range_of_sn), len(dict_of_codes)))

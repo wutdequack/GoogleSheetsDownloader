@@ -1,4 +1,4 @@
-# Drive V3 Python Quickstart
+# Google Sheets Downloader (24-26 Jun)
 
 Complete Step 1 described in the [Drive V3 Python Quickstart](
 https://developers.google.com/drive/v3/web/quickstart/python)
@@ -22,10 +22,11 @@ pip install -r requirements.txt
 
 ## Run
 
+Should have at least 3 arguments. at most 4 arguments.
 ```
-Usage: getsheets.py <list of domainS seperated by commas> <Day of Project: 1 -> 24, 2-> 25, 3 -> 26> <serial num range> [serial num(s) to exclude, if any]
-Example 1: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 1 106-120 108,109
-Example 2: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 2 106-120 108 
+Usage: getsheets.py <list of domainS seperated by commas> <serial num range> [serial num(s) to exclude, if any]
+Example 1: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108,109
+Example 2: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108 
 ```
 
 ## Main Sources of Information
