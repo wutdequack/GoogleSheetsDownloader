@@ -1,5 +1,6 @@
 from __future__ import print_function
 from time import time
+from datetime import datetime
 import sys
 import pickle
 import os.path
@@ -10,6 +11,21 @@ from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
+
+
+def get_formatted_date():
+    # Gets formatted Date
+    return datetime.now().strftime("%d%b")
+
+
+def enum_sn(range_of_sn, ignore_sn):
+    """
+    To create list of serial numbers
+    :param range_of_sn: <list> list of serial numbers
+    :param ignore_sn: <list> list of serial numbers to ignore
+    :return: <list> final list of serial numbers
+    """
+    return [sn for sn in range_of_sn if sn not in ignore_sn]
 
 
 def convert_unicode_to_str(unicode_str):
@@ -33,7 +49,7 @@ def get_codes(list_of_urls):
             url = "http://www." + url
         person_id = url.split("/")[-1]
         r = requests.get(url)
-        dict_of_codes[convert_unicode_to_str(r.url).split("/")[5]] = person_id.upper()
+        dict_of_codes[convert_unicode_to_str(r.url).split("/")[5]] = person_id.upper()[:2]
     return dict_of_codes
 
 
@@ -67,12 +83,14 @@ def main(argv):
     service = build('drive', 'v3', credentials=creds)
 
     # Get Params
-    if len(argv) != 2:
-        print("Usage: getsheets.py <list of domains seperated by commas>")
-        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX")
+    if len(argv) != 4:
+        print("Usage: getsheets.py <list of domainS seperated by commas> <serial num range> [serial num(s) to exclude, if any]")
+        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108,109")
+        print("i.e. getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108")
         return None
 
     print("[*] Converting Domains into spreadsheetIds")
+
     # Enumerate list
     list_of_addresses = argv[1].split(",")
     dict_of_codes = get_codes(list_of_addresses)
@@ -82,7 +100,19 @@ def main(argv):
     os.mkdir(dir_name)
     accessToken = convert_unicode_to_str(creds.token)
 
+    # Get list of S/Ns
+    range_of_sn = range(int(argv[2].split("-")[0]), int(argv[2].split("-")[1]) + 1)
+    range_of_sn = enum_sn(range_of_sn, map(int, argv[3].split(",")))
+
+    if len(range_of_sn) != len(dict_of_codes):
+        print("[!] Your Serial number range [{}] does not add up to the number of domains [{}] given...".format(len(range_of_sn), len(dict_of_codes)))
+        print("[!] Check your params again!")
+        return None
+
     print("[*] Enumerating through and forming Export URLs...")
+
+    # Wah I am super tired. Will use a count as an index for now
+    count = 0
     for spreadsheetId, person_id in dict_of_codes.items():
         url = ('https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/export?'
                + 'format=pdf'  # export as PDF
@@ -94,10 +124,11 @@ def main(argv):
                + '&pagenum=RIGHT'  # Put page number to right of footer
                + '&access_token=' + accessToken)  # access token
         r = requests.get(url)
-        file_loc = '{}/{}.pdf'.format(dir_name, person_id)
+        file_loc = '{}/{}_{}_{}.pdf'.format(dir_name, get_formatted_date(), range_of_sn[count],person_id)
         with open(file_loc, 'wb') as saveFile:
             saveFile.write(r.content)
         print("[*] Created PDF File at {}".format(file_loc))
+        count += 1
 
     print("[*] End of Program, Have a nice day!")
 

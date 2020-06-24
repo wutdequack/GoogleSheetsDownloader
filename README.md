@@ -23,8 +23,9 @@ pip install -r requirements.txt
 ## Run
 
 ```
-Usage: python getsheets.py <list of domains seperated by commas>
-Example: python getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 
+Usage: getsheets.py <list of domainS seperated by commas> <serial num range> [serial num(s) to exclude, if any]
+Example 1: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108,109
+Example 2: getsheets.py http://www.go.gov.sg/XXXX,http://www.go.gov.sg/XX 106-120 108 
 ```
 
 ## Main Sources of Information
