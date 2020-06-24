@@ -1,4 +1,5 @@
 from __future__ import print_function
+from collections import OrderedDict
 from time import time
 from datetime import datetime
 import sys
@@ -25,7 +26,7 @@ def enum_sn(range_of_sn, ignore_sn):
     :param ignore_sn: <list> list of serial numbers to ignore
     :return: <list> final list of serial numbers
     """
-    return [sn for sn in range_of_sn if sn not in ignore_sn]
+    return sorted([sn for sn in range_of_sn if sn not in ignore_sn])
 
 
 def convert_unicode_to_str(unicode_str):
@@ -43,13 +44,13 @@ def get_codes(list_of_urls):
     :param list_of_urls: list of urls
     :return: dict of codes
     """
-    dict_of_codes = {}
+    dict_of_codes = OrderedDict()
     for url in list_of_urls:
         if not url.startswith("http://www.") or url.startswith("www.") or url.startswith("https://www."):
             url = "http://www." + url
         person_id = url.split("/")[-1]
         r = requests.get(url)
-        dict_of_codes[convert_unicode_to_str(r.url).split("/")[5]] = person_id.upper()[:2]
+        dict_of_codes[person_id.upper()[:2]] = convert_unicode_to_str(r.url).split("/")[5]
     return dict_of_codes
 
 
@@ -113,7 +114,7 @@ def main(argv):
 
     # Wah I am super tired. Will use a count as an index for now
     count = 0
-    for spreadsheetId, person_id in dict_of_codes.items():
+    for person_id, spreadsheetId in dict_of_codes.items():
         url = ('https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/export?'
                + 'format=pdf'  # export as PDF
                + '&portrait=false'  # landscape
