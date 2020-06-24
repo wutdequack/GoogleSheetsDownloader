@@ -29,6 +29,8 @@ def get_codes(list_of_urls):
     """
     dict_of_codes = {}
     for url in list_of_urls:
+        if not url.startswith("http://www.") or url.startswith("www.") or url.startswith("https://www."):
+            url = "http://www." + url
         person_id = url.split("/")[-1]
         r = requests.get(url)
         dict_of_codes[convert_unicode_to_str(r.url).split("/")[5]] = person_id
@@ -74,8 +76,6 @@ def main(argv):
     dir_name = "{}".format(time())
     os.mkdir(dir_name)
     accessToken = convert_unicode_to_str(creds.token)
-    print(accessToken)
-    print(type(accessToken))
 
     for spreadsheetId, person_id in dict_of_codes.items():
         url = ('https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/export?'
